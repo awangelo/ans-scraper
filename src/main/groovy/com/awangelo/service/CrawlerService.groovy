@@ -11,15 +11,16 @@ import static groovyx.net.http.HttpBuilder.configure
 final class CrawlerService {
     private final HttpBuilder httpBuilder
     private static final String BASE_URL = 'https://www.gov.br/ans/pt-br'
+    static final String USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'
 
     CrawlerService() {
         this.httpBuilder = configure {
             request.uri = BASE_URL
-            request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'
+            request.headers['User-Agent'] = USER_AGENT
         }
     }
 
-    Object buscarDocumentosTiss() {
+    Map<String, Object> buscarDocumentosTiss() {
         println '1. Buscando página inicial...'
         Document home = fetchPage()
 
