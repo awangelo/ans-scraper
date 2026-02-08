@@ -30,23 +30,39 @@ final class CrawlerService {
         Document docPrestador = fetchPage(urlPrestador)
         String urlTiss = AnsHtmlParser.extrairLinkTiss(docPrestador)
 
-        println '4.1. Buscando Versão Atual...'
-        Document docTiss = fetchPage(urlTiss)
-        String urlVersao = AnsHtmlParser.extrairLinkVersaoAtual(docTiss)
+        println '--> Acessando página central do TISS...'
+        Document docPageTiss = fetchPage(urlTiss)
 
-        println '4.2. Buscando Histórico das versões...'
-        Document docHist = fetchPage(urlTiss)
-        String urlHist = AnsHtmlParser.extrairLinkHistorico(docHist)
+        println '4.1. Buscando Link da Versão Atual...'
+        String urlVersao = AnsHtmlParser.extrairLinkVersaoAtual(docPageTiss)
+
+        println '4.2. Buscando e Processando Histórico das versões...'
+        String urlHist = AnsHtmlParser.extrairLinkHistorico(docPageTiss)
 
         println '4.3. Buscando Tabelas Relacionadas...'
-        Document docRel = fetchPage(urlTiss)
-        String urlRel = AnsHtmlParser.extrairLinkTabelas(docRel)
+        String urlRel = AnsHtmlParser.extrairLinkTabelas(docPageTiss)
 
-        println '5. Buscando Componente de Comunicação...'
-        Document docVersao = fetchPage(urlVersao)
-        String urlDownload = AnsHtmlParser.extrairLinkComponenteComunicacao(docVersao)
+        println '5.1. Buscando Componente de Comunicação...'
+        Document docVersaoAtual = fetchPage(urlVersao)
+        String urlDownload = AnsHtmlParser.extrairLinkComponenteComunicacao(docVersaoAtual)
+        println ' --> Link encontrado'
 
-        urlDownload
+        println '5.2. Buscando Tabela de competência, publicação e início de vigência'
+        Document docHistorico = fetchPage(urlHist)
+        List<Map<String, String>> dadosTabela = AnsHtmlParser.extrairTabelaHistorico(docHistorico)
+        println ' --> Dados encontrados'
+
+        println '5.3. Buscando Tabelas Relacionadas...'
+        Document docTabelas = fetchPage(urlRel)
+        String urlErros = AnsHtmlParser.extrairLinkTabelaDeErros(docTabelas)
+        println ' --> Link encontrado'
+
+        [
+                urlDownload    : urlDownload,
+                urlTabelaErros : urlErros,
+                tabelaHistorico: dadosTabela
+        ]
+
     }
 
     private Document fetchPage() {
@@ -67,7 +83,7 @@ final class CrawlerService {
                 }
 
                 // status >= 400
-                response.failure { FromServer fs, Object body ->
+                response.failure { FromServer fs, _ ->
                     throw new RuntimeException("Falha HTTP ${fs.statusCode} ao acessar ${url}")
                 }
 
